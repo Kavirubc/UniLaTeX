@@ -55,6 +55,10 @@ jobs:
           gh repo create "$OWNER/$REPO" --private --description "$TITLE" --clone
           cd "$REPO"
 
+          # Configure git identity for the CI runner
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
           # 2. Copy template files from hub
           cp ../template/.gitignore .
           cp ../template/.latexmkrc .
