@@ -1,4 +1,4 @@
-name: "\U0001F4C4 New LaTeX Paper"
+name: "New LaTeX Paper"
 description: Create a new private LaTeX project from the standard template
 title: "[NEW] "
 labels: ["new-project"]

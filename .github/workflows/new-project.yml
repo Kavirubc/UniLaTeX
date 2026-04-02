@@ -78,7 +78,7 @@ jobs:
           cat > README.md << READMEEOF
           # $TITLE
 
-          > Created from [latex-projects](https://github.com/$OWNER/latex-projects) hub.
+          > Created from [ksrx-latex-projects](https://github.com/$OWNER/ksrx-latex-projects) hub.
 
           **Authors:** $AUTHORS
           **Institution:** $INST
@@ -98,7 +98,7 @@ jobs:
 
           # 5. Commit and push
           git add -A
-          git commit -m "chore: scaffold from latex-projects template"
+          git commit -m "chore: scaffold from ksrx-latex-projects template"
           git push
 
           # 6. Invite collaborators
@@ -122,7 +122,7 @@ jobs:
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.payload.issue.number,
-              body: `## ✅ Project created!\n\n**Repo:** ${repoUrl}\n\n\`\`\`bash\ngit clone ${repoUrl}\ncd ${repoName}\nmake\n\`\`\`\n\n> Set up Zotero BBT auto-export to \`references.bib\``
+              body: `## Project created\n\n**Repository:** ${repoUrl}\n\n\`\`\`bash\ngit clone ${repoUrl}\ncd ${repoName}\nmake\n\`\`\`\n\nSet up Zotero Better BibTeX auto-export to \`references.bib\` to enable citation management.`
             });
             await github.rest.issues.update({
               ...context.repo,
