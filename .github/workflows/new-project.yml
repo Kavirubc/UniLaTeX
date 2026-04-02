@@ -59,6 +59,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
+          # Set remote URL with token for push authentication
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/$OWNER/$REPO.git"
+
           # 2. Copy template files from hub
           cp ../template/.gitignore .
           cp ../template/.latexmkrc .
