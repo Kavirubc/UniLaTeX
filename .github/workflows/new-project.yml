@@ -135,6 +135,15 @@ jobs:
               fi
             done
           fi
+          # 7. Add new repo as submodule in the hub
+          cd "$GITHUB_WORKSPACE"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/$OWNER/ksrx-latex-projects.git"
+          git submodule add "https://github.com/$OWNER/$REPO.git" "projects/$REPO"
+          git add .gitmodules "projects/$REPO"
+          git commit -m "feat: add $REPO as submodule"
+          git push origin main
 
           echo "REPO_URL=https://github.com/$OWNER/$REPO" >> "$GITHUB_ENV"
 
