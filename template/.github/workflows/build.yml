@@ -1,0 +1,61 @@
+name: Build LaTeX Document
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          latexmk_use_xelatex: false
+          continue_on_error: true
+          args: -pdf -interaction=nonstopmode -file-line-error
+
+      - name: Verify PDF was produced
+        run: |
+          if [ ! -f main.pdf ]; then
+            echo "::error::PDF was not generated — check LaTeX compilation errors above"
+            exit 1
+          fi
+          echo "✅ main.pdf generated ($(du -h main.pdf | cut -f1))"
+
+      - name: Upload compiled PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-paper
+          path: main.pdf
+          retention-days: 30
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download compiled PDF
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-paper
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: main.pdf
+          generate_release_notes: true

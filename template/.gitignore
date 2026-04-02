@@ -1,0 +1,123 @@
+# =============================================================================
+# LaTeX .gitignore — Comprehensive
+# =============================================================================
+
+## --- Core LaTeX auxiliary files ---
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+## --- Bibliography ---
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+## --- Index / Glossary ---
+*.idx
+*.ilg
+*.ind
+*.ist
+*.glo
+*.gls
+*.glg
+
+## --- Nomenclature ---
+*.nlo
+*.nls
+
+## --- Latexmk ---
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+
+## --- Build output ---
+*.dvi
+*.xdv
+*.ps
+*.pdf
+
+## --- Packages specific ---
+*.nav
+*.pre
+*.snm
+*.vrb
+
+# hyperref
+*.brf
+
+# minitoc
+*.maf
+*.mlf
+*.mlt
+*.mtc[0-9]*
+*.slf[0-9]*
+*.slt[0-9]*
+*.stc[0-9]*
+
+# minted
+_minted*
+
+# todonotes
+*.tdo
+
+# listings
+*.lol
+
+# makeidx
+*.xdy
+
+# tikz externalize
+*.dpth
+*.md5
+*.auxlock
+
+## --- Editor & IDE files ---
+# TeXstudio
+*.txss
+# TeXnicCenter
+*.tps
+# Kile
+*.backup
+# VS Code (user-local files only — project settings ARE tracked)
+.vscode/
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+## --- OS files ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+## --- Build directory (if using -output-directory) ---
+build/
+output/
+
+## --- Zotero auto-export (keep the .bib, ignore Zotero lock files) ---
+# NOTE: We DO track .bib files — uncomment the line below ONLY if you
+#       want collaborators to use their own Zotero export instead.
+# references.bib
+
+# =============================================================================
+# IMPORTANT: We intentionally DO NOT ignore .tex, .bib, .sty, .cls, .bst files.
+# Those are source files and belong in version control.
+# =============================================================================
+# Track shared VS Code workspace settings (LaTeX Workshop config)
+!.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json

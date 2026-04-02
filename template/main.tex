@@ -1,0 +1,77 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{csquotes}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+\usepackage{array}
+\usepackage{hyperref}
+
+\usepackage[style=authoryear-ibid,backend=biber]{biblatex}
+\addbibresource{references.bib}
+
+\begin{document}
+
+% ── Title Page ────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{\fill}
+    {\LARGE \bfseries {{PAPER_TITLE}}} \\
+    \vspace{2cm}
+    {\large \bfseries {{AUTHORS}}} \\
+    \vspace{2cm}
+    {\large {{INSTITUTION}}} \\
+    \vspace{1cm}
+    {\large \today}
+    \vspace*{\fill}
+\end{titlepage}
+
+% ── Front matter ──────────────────────────────────────────
+\newpage
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+% Write your abstract here.
+
+\newpage
+\tableofcontents
+
+\newpage
+\listoffigures
+
+\newpage
+\listoftables
+
+% ── Main content ──────────────────────────────────────────
+\newpage
+\section{Introduction}
+\label{sec:introduction}
+
+% Start writing here. Use \parencite{key} for citations.
+
+\newpage
+\section{Related Work}
+\label{sec:related-work}
+
+\newpage
+\section{Methodology}
+\label{sec:methodology}
+
+\newpage
+\section{Results}
+\label{sec:results}
+
+\newpage
+\section{Discussion}
+\label{sec:discussion}
+
+\newpage
+\section{Conclusion}
+\label{sec:conclusion}
+
+% ── Bibliography ──────────────────────────────────────────
+\printbibliography
+
+\end{document}

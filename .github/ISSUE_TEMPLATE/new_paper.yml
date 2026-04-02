@@ -1,0 +1,48 @@
+name: "\U0001F4C4 New LaTeX Paper"
+description: Create a new private LaTeX project from the standard template
+title: "[NEW] "
+labels: ["new-project"]
+body:
+  - type: input
+    id: repo_name
+    attributes:
+      label: Repository name
+      description: "Short slug for the repo (e.g. my-paper, phd-thesis-ch2). No spaces."
+      placeholder: my-paper
+    validations:
+      required: true
+
+  - type: input
+    id: paper_title
+    attributes:
+      label: Paper / project title
+      description: Full title that will appear on the title page
+      placeholder: "Semantic Linking for Active Retention"
+    validations:
+      required: true
+
+  - type: input
+    id: authors
+    attributes:
+      label: "Author(s)"
+      description: Comma-separated list of author names
+      placeholder: "Lastname A.B., Lastname C.D."
+    validations:
+      required: true
+
+  - type: input
+    id: institution
+    attributes:
+      label: Institution
+      placeholder: "University of Colombo, School of Computing"
+    validations:
+      required: false
+
+  - type: input
+    id: collaborators
+    attributes:
+      label: "GitHub collaborators to invite (optional)"
+      description: Comma-separated GitHub usernames
+      placeholder: "username1, username2"
+    validations:
+      required: false

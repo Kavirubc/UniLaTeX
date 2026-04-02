@@ -1,0 +1,24 @@
+{
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  "latex-workshop.latex.recipes": [
+    { "name": "latexmk (pdf)", "tools": ["latexmk"] }
+  ],
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk",
+      "command": "latexmk",
+      "args": ["-pdf", "-synctex=1", "-interaction=nonstopmode", "-file-line-error", "%DOC%"],
+      "env": {}
+    }
+  ],
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.synctex.afterBuild.enabled": true,
+  "latex-workshop.latex.autoClean.run": "onBuilt",
+  "latex-workshop.latex.clean.fileTypes": [
+    "*.aux", "*.bbl", "*.bcf", "*.blg", "*.fdb_latexmk",
+    "*.fls", "*.log", "*.out", "*.run.xml", "*.synctex.gz",
+    "*.toc", "*.lof", "*.lot"
+  ],
+  "cSpell.words": ["SELAR", "biblatex", "biber", "Zotero", "parencite", "Zettelkasten"],
+  "files.associations": { "*.tex": "latex", "*.bib": "bibtex" }
+}

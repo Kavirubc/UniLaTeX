@@ -1,0 +1,131 @@
+name: Scaffold New LaTeX Project
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  scaffold:
+    if: contains(github.event.issue.labels.*.name, 'new-project')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout hub repo (for templates)
+        uses: actions/checkout@v4
+
+      - name: Parse issue form fields
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body;
+            const get = (label) => {
+              const re = new RegExp(`### ${label}\\s*\\n+([^\\n#]+)`);
+              const m = body.match(re);
+              return m ? m[1].trim() : '';
+            };
+            const repoName = get('Repository name').replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
+            const title    = get('Paper / project title');
+            const authors  = get('Author\\(s\\)');
+            const inst     = get('Institution') || 'University of Colombo, School of Computing';
+            const collabs  = get('GitHub collaborators to invite \\(optional\\)');
+            core.setOutput('repo_name',     repoName);
+            core.setOutput('title',         title);
+            core.setOutput('authors',       authors);
+            core.setOutput('institution',   inst);
+            core.setOutput('collaborators', collabs);
+
+      - name: Create repo and scaffold
+        env:
+          GH_TOKEN: ${{ secrets.LATEX_PAT }}
+          REPO:     ${{ steps.parse.outputs.repo_name }}
+          TITLE:    ${{ steps.parse.outputs.title }}
+          AUTHORS:  ${{ steps.parse.outputs.authors }}
+          INST:     ${{ steps.parse.outputs.institution }}
+          COLLABS:  ${{ steps.parse.outputs.collaborators }}
+          OWNER:    ${{ github.repository_owner }}
+        run: |
+          set -e
+
+          # 1. Create private repo
+          gh repo create "$OWNER/$REPO" --private --description "$TITLE" --clone
+          cd "$REPO"
+
+          # 2. Copy template files from hub
+          cp ../template/.gitignore .
+          cp ../template/.latexmkrc .
+          cp ../template/Makefile .
+          cp ../template/references.bib .
+
+          mkdir -p .github/workflows .vscode Diagrams Tables
+          cp ../template/.github/workflows/build.yml .github/workflows/
+          cp ../template/.vscode/settings.json .vscode/
+          cp ../template/.vscode/extensions.json .vscode/
+
+          touch Diagrams/.gitkeep Tables/.gitkeep
+
+          # 3. Generate main.tex with title/authors/institution injected
+          sed \
+            -e "s|{{PAPER_TITLE}}|$TITLE|g" \
+            -e "s|{{AUTHORS}}|$AUTHORS|g" \
+            -e "s|{{INSTITUTION}}|$INST|g" \
+            ../template/main.tex > main.tex
+
+          # 4. Generate README
+          cat > README.md << READMEEOF
+          # $TITLE
+
+          > Created from [latex-projects](https://github.com/$OWNER/latex-projects) hub.
+
+          **Authors:** $AUTHORS
+          **Institution:** $INST
+
+          ## Build
+
+          \`\`\`bash
+          make        # build PDF
+          make watch  # live-reload
+          make clean  # remove aux files
+          \`\`\`
+
+          ## Zotero
+
+          Export your collection → Better BibLaTeX → **Keep updated** → save as \`references.bib\`.
+          READMEEOF
+
+          # 5. Commit and push
+          git add -A
+          git commit -m "chore: scaffold from latex-projects template"
+          git push
+
+          # 6. Invite collaborators
+          if [ -n "$COLLABS" ]; then
+            IFS=',' read -ra USERS <<< "$COLLABS"
+            for u in "${USERS[@]}"; do
+              u=$(echo "$u" | xargs)
+              gh api "repos/$OWNER/$REPO/collaborators/$u" -X PUT -f permission=push || true
+            done
+          fi
+
+          echo "REPO_URL=https://github.com/$OWNER/$REPO" >> "$GITHUB_ENV"
+
+      - name: Comment and close issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.LATEX_PAT }}
+          script: |
+            const repoUrl = process.env.REPO_URL;
+            const repoName = '${{ steps.parse.outputs.repo_name }}';
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.payload.issue.number,
+              body: `## ✅ Project created!\n\n**Repo:** ${repoUrl}\n\n\`\`\`bash\ngit clone ${repoUrl}\ncd ${repoName}\nmake\n\`\`\`\n\n> Set up Zotero BBT auto-export to \`references.bib\``
+            });
+            await github.rest.issues.update({
+              ...context.repo,
+              issue_number: context.payload.issue.number,
+              state: 'closed'
+            });
