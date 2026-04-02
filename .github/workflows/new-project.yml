@@ -39,6 +39,7 @@ jobs:
             core.setOutput('collaborators', collabs);
 
       - name: Create repo and scaffold
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.LATEX_PAT }}
           REPO:     ${{ steps.parse.outputs.repo_name }}
@@ -48,7 +49,7 @@ jobs:
           COLLABS:  ${{ steps.parse.outputs.collaborators }}
           OWNER:    ${{ github.repository_owner }}
         run: |
-          set -e
+          set -euo pipefail
 
           # 1. Create private repo
           gh repo create "$OWNER/$REPO" --private --description "$TITLE" --clone
@@ -67,46 +68,63 @@ jobs:
 
           touch Diagrams/.gitkeep Tables/.gitkeep
 
-          # 3. Generate main.tex with title/authors/institution injected
-          sed \
-            -e "s|{{PAPER_TITLE}}|$TITLE|g" \
-            -e "s|{{AUTHORS}}|$AUTHORS|g" \
-            -e "s|{{INSTITUTION}}|$INST|g" \
-            ../template/main.tex > main.tex
+          # 3. Generate main.tex — use Python for safe string substitution
+          #    (avoids sed injection from special characters in user-supplied fields)
+          python3 - << 'PYEOF'
+          import os
+          with open('../template/main.tex') as f:
+              content = f.read()
+          content = content.replace('{{PAPER_TITLE}}', os.environ['TITLE'])
+          content = content.replace('{{AUTHORS}}',     os.environ['AUTHORS'])
+          content = content.replace('{{INSTITUTION}}', os.environ['INST'])
+          with open('main.tex', 'w') as f:
+              f.write(content)
+          PYEOF
 
-          # 4. Generate README
-          cat > README.md << READMEEOF
-          # $TITLE
-
-          > Created from [ksrx-latex-projects](https://github.com/$OWNER/ksrx-latex-projects) hub.
-
-          **Authors:** $AUTHORS
-          **Institution:** $INST
-
-          ## Build
-
-          \`\`\`bash
-          make        # build PDF
-          make watch  # live-reload
-          make clean  # remove aux files
-          \`\`\`
-
-          ## Zotero
-
-          Export your collection → Better BibLaTeX → **Keep updated** → save as \`references.bib\`.
-          READMEEOF
+          # 4. Generate README — use Python to avoid command substitution in heredoc
+          python3 - << 'PYEOF'
+          import os
+          title  = os.environ['TITLE']
+          authors = os.environ['AUTHORS']
+          inst   = os.environ['INST']
+          owner  = os.environ['OWNER']
+          readme = (
+              f"# {title}\n\n"
+              f"> Created from [ksrx-latex-projects](https://github.com/{owner}/ksrx-latex-projects) hub.\n\n"
+              f"**Authors:** {authors}\n"
+              f"**Institution:** {inst}\n\n"
+              "## Build\n\n"
+              "```bash\n"
+              "make        # build PDF\n"
+              "make watch  # live-reload\n"
+              "make clean  # remove aux files\n"
+              "```\n\n"
+              "## Zotero\n\n"
+              "Export your collection → Better BibLaTeX → **Keep updated** → save as `references.bib`.\n"
+          )
+          with open('README.md', 'w') as f:
+              f.write(readme)
+          PYEOF
 
           # 5. Commit and push
           git add -A
           git commit -m "chore: scaffold from ksrx-latex-projects template"
           git push
 
-          # 6. Invite collaborators
+          # 6. Invite collaborators — validate usernames before use in API path
           if [ -n "$COLLABS" ]; then
             IFS=',' read -ra USERS <<< "$COLLABS"
             for u in "${USERS[@]}"; do
-              u=$(echo "$u" | xargs)
-              gh api "repos/$OWNER/$REPO/collaborators/$u" -X PUT -f permission=push || true
+              u="${u#"${u%%[![:space:]]*}"}"   # ltrim
+              u="${u%"${u##*[![:space:]]}"}"   # rtrim
+              # GitHub usernames: alphanumeric + hyphens, 1-39 chars, no leading/trailing hyphen
+              if [[ ! "$u" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$ ]]; then
+                echo "::warning::Skipping invalid GitHub username: '$u'"
+                continue
+              fi
+              if ! gh api "repos/$OWNER/$REPO/collaborators/$u" -X PUT -f permission=push; then
+                echo "::warning::Failed to invite collaborator: $u"
+              fi
             done
           fi
 
