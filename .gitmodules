@@ -1,3 +1,6 @@
 [submodule "projects/SELAR"]
 	path = projects/SELAR
 	url = https://github.com/Kavirubc/SELAR.git
+[submodule "projects/new-idea"]
+	path = projects/new-idea
+	url = https://github.com/Kavirubc/new-idea.git
