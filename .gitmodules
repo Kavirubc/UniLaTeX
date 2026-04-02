@@ -1,0 +1,3 @@
+[submodule "projects/SELAR"]
+	path = projects/SELAR
+	url = https://github.com/Kavirubc/SELAR.git
