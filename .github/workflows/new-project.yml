@@ -140,7 +140,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/$OWNER/ksrx-latex-projects.git"
-          git submodule add "https://github.com/$OWNER/$REPO.git" "projects/$REPO"
+
+          # Clone with token, then rewrite .gitmodules to clean URL
+          git submodule add "https://x-access-token:${GH_TOKEN}@github.com/$OWNER/$REPO.git" "projects/$REPO"
+          git config --file .gitmodules "submodule.projects/$REPO.url" "https://github.com/$OWNER/$REPO.git"
           git add .gitmodules "projects/$REPO"
           git commit -m "feat: add $REPO as submodule"
           git push origin main
