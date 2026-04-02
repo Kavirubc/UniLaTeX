@@ -1,0 +1,53 @@
+name: Update Submodule Pointers
+
+on:
+  schedule:
+    # Times in UTC (IST = UTC + 5:30)
+    - cron: '30 2 * * *'    # 8:00 AM IST
+    - cron: '30 6 * * *'    # 12:00 PM IST
+    - cron: '30 10 * * *'   # 4:00 PM IST
+    - cron: '30 14 * * *'   # 8:00 PM IST
+    - cron: '30 17 * * *'   # 11:00 PM IST
+  workflow_dispatch:         # manual trigger from Actions tab
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.LATEX_PAT }}
+          submodules: true
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+      - name: Update all submodules to latest
+        run: |
+          # Rewrite submodule URLs to use token for private repo access
+          git submodule foreach --quiet '
+            origin_url=$(git config --get remote.origin.url)
+            if [[ "$origin_url" == https://github.com/* ]] && [[ "$origin_url" != *x-access-token* ]]; then
+              auth_url=$(echo "$origin_url" | sed "s|https://github.com/|https://x-access-token:${{ secrets.LATEX_PAT }}@github.com/|")
+              git remote set-url origin "$auth_url"
+            fi
+          '
+          git submodule update --remote --merge
+
+      - name: Push if changed
+        run: |
+          if git diff --quiet; then
+            echo "All submodules already up to date."
+          else
+            git add -A
+            git commit -m "chore: update submodule pointers to latest commits"
+            git push origin main
+            echo "Submodules updated."
+          fi
