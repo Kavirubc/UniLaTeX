@@ -111,9 +111,10 @@ jobs:
           PYEOF
 
           # 5. Commit and push
+          git checkout -b main
           git add -A
           git commit -m "chore: scaffold from ksrx-latex-projects template"
-          git push
+          git push --set-upstream origin main
 
           # 6. Invite collaborators — validate usernames before use in API path
           if [ -n "$COLLABS" ]; then
