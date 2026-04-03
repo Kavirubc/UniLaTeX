@@ -30,7 +30,7 @@ jobs:
             const repoName = get('Repository name').replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
             const title    = get('Paper / project title');
             const authors  = get('Author\\(s\\)');
-            const inst     = get('Institution') || 'University of Colombo, School of Computing';
+            const inst     = get('Institution');
             const collabs  = get('GitHub collaborators to invite \\(optional\\)');
             core.setOutput('repo_name',     repoName);
             core.setOutput('title',         title);
@@ -48,6 +48,8 @@ jobs:
           INST:     ${{ steps.parse.outputs.institution }}
           COLLABS:  ${{ steps.parse.outputs.collaborators }}
           OWNER:    ${{ github.repository_owner }}
+          HUB_REPO: ${{ github.event.repository.name }}
+          HUB_FULL: ${{ github.event.repository.full_name }}
         run: |
           set -euo pipefail
 
@@ -75,8 +77,7 @@ jobs:
 
           touch Diagrams/.gitkeep Tables/.gitkeep
 
-          # 3. Generate main.tex — use Python for safe string substitution
-          #    (avoids sed injection from special characters in user-supplied fields)
+          # 3. Generate main.tex with title/authors/institution injected
           python3 - << 'PYEOF'
           import os
           with open('../template/main.tex') as f:
@@ -88,26 +89,28 @@ jobs:
               f.write(content)
           PYEOF
 
-          # 4. Generate README — use Python to avoid command substitution in heredoc
+          # 4. Generate README
           python3 - << 'PYEOF'
           import os
-          title  = os.environ['TITLE']
+          title   = os.environ['TITLE']
           authors = os.environ['AUTHORS']
-          inst   = os.environ['INST']
-          owner  = os.environ['OWNER']
+          inst    = os.environ['INST']
+          owner   = os.environ['OWNER']
+          hub     = os.environ['HUB_REPO']
           readme = (
               f"# {title}\n\n"
-              f"> Created from [ksrx-latex-projects](https://github.com/{owner}/ksrx-latex-projects) hub.\n\n"
+              f"> Scaffolded from [{hub}](https://github.com/{owner}/{hub}).\n\n"
               f"**Authors:** {authors}\n"
-              f"**Institution:** {inst}\n\n"
-              "## Build\n\n"
+              + (f"**Institution:** {inst}\n\n" if inst else "\n")
+              + "## Build\n\n"
               "```bash\n"
               "make        # build PDF\n"
               "make watch  # live-reload\n"
               "make clean  # remove aux files\n"
               "```\n\n"
-              "## Zotero\n\n"
-              "Export your collection → Better BibLaTeX → **Keep updated** → save as `references.bib`.\n"
+              "## Reference Management\n\n"
+              "Export your Zotero collection with Better BibLaTeX, enable **Keep updated**, "
+              "and save as `references.bib` in this directory.\n"
           )
           with open('README.md', 'w') as f:
               f.write(readme)
@@ -116,16 +119,15 @@ jobs:
           # 5. Commit and push
           git checkout -b main
           git add -A
-          git commit -m "chore: scaffold from ksrx-latex-projects template"
+          git commit -m "chore: scaffold from $HUB_REPO template"
           git push --set-upstream origin main
 
-          # 6. Invite collaborators — validate usernames before use in API path
+          # 6. Invite collaborators
           if [ -n "$COLLABS" ]; then
             IFS=',' read -ra USERS <<< "$COLLABS"
             for u in "${USERS[@]}"; do
               u="${u#"${u%%[![:space:]]*}"}"   # ltrim
               u="${u%"${u##*[![:space:]]}"}"   # rtrim
-              # GitHub usernames: alphanumeric + hyphens, 1-39 chars, no leading/trailing hyphen
               if [[ ! "$u" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$ ]]; then
                 echo "::warning::Skipping invalid GitHub username: '$u'"
                 continue
@@ -135,13 +137,13 @@ jobs:
               fi
             done
           fi
+
           # 7. Add new repo as submodule in the hub
           cd "$GITHUB_WORKSPACE"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/$OWNER/ksrx-latex-projects.git"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/$HUB_FULL.git"
 
-          # Clone with token, then rewrite .gitmodules to clean URL
           git submodule add "https://x-access-token:${GH_TOKEN}@github.com/$OWNER/$REPO.git" "projects/$REPO"
           git config --file .gitmodules "submodule.projects/$REPO.url" "https://github.com/$OWNER/$REPO.git"
           git add .gitmodules "projects/$REPO"

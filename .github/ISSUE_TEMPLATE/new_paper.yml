@@ -17,7 +17,7 @@ body:
     attributes:
       label: Paper / project title
       description: Full title that will appear on the title page
-      placeholder: "Semantic Linking for Active Retention"
+      placeholder: "A Novel Approach to ..."
     validations:
       required: true
 
@@ -34,7 +34,7 @@ body:
     id: institution
     attributes:
       label: Institution
-      placeholder: "University of Colombo, School of Computing"
+      placeholder: ""
     validations:
       required: false
 
