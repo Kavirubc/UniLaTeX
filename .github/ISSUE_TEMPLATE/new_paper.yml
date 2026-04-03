@@ -34,7 +34,6 @@ body:
     id: institution
     attributes:
       label: Institution
-      placeholder: ""
 
   - type: input
     id: collaborators
