@@ -35,8 +35,6 @@ body:
     attributes:
       label: Institution
       placeholder: ""
-    validations:
-      required: false
 
   - type: input
     id: collaborators
@@ -44,5 +42,3 @@ body:
       label: "GitHub collaborators to invite (optional)"
       description: Comma-separated GitHub usernames
       placeholder: "username1, username2"
-    validations:
-      required: false
