@@ -1,4 +1,4 @@
-# LaTeX Project Manager
+# UniLaTeX
 
 An automated LaTeX project management system built on GitHub Actions. Create new paper repositories from a standard template by opening an issue — no manual setup required.
 
