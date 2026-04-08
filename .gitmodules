@@ -3,4 +3,4 @@
 	url = https://github.com/Kavirubc/SELAR.git
 [submodule "projects/a-d-b"]
 	path = projects/a-d-b
-	url = https://github.com/Kavirubc/a-d-b.git
+	url = https://github.com/Kavirubc/AgentDisruptBench.git
